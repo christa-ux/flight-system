@@ -3,7 +3,7 @@ package Models;
 public class Staff extends User {
 	protected String staffBadge;
 	
-	public Staff (int id, String name, String email, String phoneNumber, String username, String password, String role, String staffBadge) {
+	public Staff (int id, String name, String email, String phoneNumber, String username, String password, String staffBadge) {
 		super (id, name, email, phoneNumber, username, password, "staff");
 		this.staffBadge=staffBadge;
 	}
