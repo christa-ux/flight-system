@@ -3,12 +3,14 @@ public class Customer extends User {
 	protected String nationality;
 	protected String dateOfBirth;
 	private String passportNumber;
+	protected String student;
 	
-	public Customer (int id, String name, String email, String phoneNumber, String username, String password, String role, String nationality, String dateOfBirth, String passportNumber)  {
+	public Customer (int id, String name, String email, String phoneNumber, String username, String password, String role, String nationality, String dateOfBirth, String passportNumber, String student)  {
 		super (id, name, email, phoneNumber, username, password, "customer" );
 		this.nationality=nationality;
 		this.dateOfBirth=dateOfBirth;
 		this.passportNumber=passportNumber;
+		this.student=student;
 	}
 	
 	public String getNationality() {
@@ -20,6 +22,11 @@ public class Customer extends User {
 	public String getPassportNumber() {
 		return passportNumber;
 	}
+	
+	public String getStudent() {
+		return student;
+	}
+	
 	 public void setNationality (String nationality) {
 		 this.nationality=nationality;
 	 }
@@ -30,10 +37,14 @@ public class Customer extends User {
 		 this.passportNumber=passportNumber;
 	 }
 	
+	 public void setStudent(String student) {
+		 this.student=student;
+	 }
+	 
 	@Override
 	public String toString() {
 		return super.toString() +  " | DOB: " + dateOfBirth +
 	               " | Nationality: " + nationality +
-	               " | Passport: " + passportNumber;
+	               " | Passport: " + passportNumber +   " | Student?: "+ student;
 	}
 }
