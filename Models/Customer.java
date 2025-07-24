@@ -5,7 +5,7 @@ public class Customer extends User {
 	private String passportNumber;
 	protected String student;
 	
-	public Customer (int id, String name, String email, String phoneNumber, String username, String password, String role, String nationality, String dateOfBirth, String passportNumber, String student)  {
+	public Customer (int id, String name, String email, String phoneNumber, String username, String password, String nationality, String dateOfBirth, String passportNumber, String student)  {
 		super (id, name, email, phoneNumber, username, password, "customer" );
 		this.nationality=nationality;
 		this.dateOfBirth=dateOfBirth;
