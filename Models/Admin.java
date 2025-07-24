@@ -3,7 +3,7 @@ package Models;
 public class Admin extends User {
 	protected String adminBadge;
 	
-	public Admin (int id, String name, String email, String phoneNumber, String username, String password, String role, String adminBadge) {
+	public Admin (int id, String name, String email, String phoneNumber, String username, String password, String adminBadge) {
 		super (id, name, email, phoneNumber, username, password, "admin");
 		this.adminBadge=adminBadge;
 	}
