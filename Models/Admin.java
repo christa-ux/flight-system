@@ -1,4 +1,4 @@
-package Models; 
+package models; 
 
 public class Admin extends User {
 	protected String adminBadge;

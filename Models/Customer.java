@@ -1,4 +1,4 @@
-package Models;
+package models;
 public class Customer extends User {
 	protected String nationality;
 	protected String dateOfBirth;

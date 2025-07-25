@@ -1,8 +1,7 @@
+package services;
 
-package Services;
-
-import Models.*;
-import Utils.*;
+import utils.Database;
+import models.*;
 public class Userservice {
 	public User createCustomer (String name, String email, String phoneNumber, String username, String password, String student, String dateOfBirth, String nationality, String passportNumber) {
 		int id=Database.userCount++;

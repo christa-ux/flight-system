@@ -1,8 +1,6 @@
-package Models;
-import utils.*;
-import services.*;
+package models;
 
-import java.util.*; 
+import java.util.Date;
 
 public class Flight {
     private int flightID;
@@ -14,8 +12,16 @@ public class Flight {
     private int capacity;
     private double price;
 
-
-    public Flight(int flightID, Airline flightAirline, Airport origin, Airport destination, Date departureTime, Date arrivalTime, int capacity, double price) {
+    public Flight(
+        int flightID,
+        Airline flightAirline,
+        Airport origin,
+        Airport destination,
+        Date departureTime,
+        Date arrivalTime,
+        int capacity,
+        double price
+    ) {
         this.flightID = flightID;
         this.flightAirline = flightAirline;
         this.origin = origin;
@@ -30,7 +36,7 @@ public class Flight {
         return flightID;
     }
 
-    public String getFlightAirline() {
+    public Airline getFlightAirline() {
         return flightAirline;
     }
 
@@ -58,22 +64,25 @@ public class Flight {
         return price;
     }
 
+    public void setDepartureTime(Date departureTime) {
+        this.departureTime = departureTime;
+    }
 
-
-
+    public void setArrivalTime(Date arrivalTime) {
+        this.arrivalTime = arrivalTime;
+    }
 
     @Override
     public String toString() {
-        return "Flight{" +
-                "id=" + flightID +
-                ", flightAirline='" + flightAirline + '\'' +
-                ", origin='" + origin + '\'' +
-                ", destination='" + destination + '\'' +
-                ", departureTime=" + departureTime +
-                ", arrivalTime=" + arrivalTime +
-                ", capacity=" + capacity +
-                ", price=" + price +
+        return "Flight {" +
+                "ID=" + flightID +
+                ", Airline=" + (flightAirline != null ? flightAirline.getName() : "Unknown") +
+                ", Origin=" + (origin != null ? origin.getAirportCode() + " (" + origin.getCity() + ")" : "Unknown") +
+                ", Destination=" + (destination != null ? destination.getAirportCode() + " (" + destination.getCity() + ")" : "Unknown") +
+                ", Departure=" + departureTime +
+                ", Arrival=" + arrivalTime +
+                ", Capacity=" + capacity +
+                ", Price=$" + price +
                 '}';
     }
 }
-
