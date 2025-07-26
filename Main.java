@@ -1,18 +1,22 @@
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import models.Airline;
 import models.Airport;
+import models.Booking;
+import models.Flight;
 import models.User;
 import services.*;
 import utils.Database;
 
-public class Main  {
-    public static void main (String[] args) {
+public class Main {
+    public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
-        Userservice userservice = new Userservice(); 
+        Userservice userservice = new Userservice();
         Flightservice flightservice = new Flightservice();
         Bookingservice bookingservice = new Bookingservice();
 
-        while (true) {  // Loop to keep prompting until exit
+        while (true) {
             System.out.println("Select what action you want to perform:\n"
                     + "1: Create User\n"
                     + "2: Create Flight\n"
@@ -24,11 +28,9 @@ public class Main  {
                     + "8: Modify Flight\n"
                     + "9: Modify Booking\n"
                     + "0: Cancel Booking\n"
-                    + "10: Exit\n"
-                    );
+                    + "10: Exit\n");
 
-            int choice = scan.nextInt();
-            scan.nextLine(); // consume leftover newline
+            int choice = getIntInput(scan, "Enter choice:");
 
             switch (choice) {
                 case 1:
@@ -45,12 +47,11 @@ public class Main  {
                     System.out.println("Enter user role: customer / staff / admin");
                     String role = scan.nextLine().toLowerCase();
 
-                    switch(role) {
+                    switch (role) {
                         case "customer":
                             System.out.println("Student? Yes/No");
                             String student = scan.nextLine();
-                            System.out.println("Enter date of birth in this format: YYYY/MM/DD");
-                            String dateOfBirth = scan.nextLine();
+                            String dateOfBirth = getValidDate(scan, "Enter date of birth (YYYY/MM/DD):");
                             System.out.println("Enter nationality");
                             String nationality = scan.nextLine();
                             System.out.println("Enter passport number");
@@ -71,84 +72,59 @@ public class Main  {
                             break;
 
                         default:
-                            System.out.println("Invalid role entered.");
+                            System.out.println("❌ Invalid role entered.");
                             break;
                     }
-                    break;  // Break case 1
+                    break;
 
                 case 2:
-                    // You can add Flight creation logic here (similarly fix input)
-                    
-    // List airlines
-    if (Database.airlines.isEmpty()) {
-        System.out.println("⚠️ No airlines available. Please create an airline first.");
-        break;
-    }
-    System.out.println("Available Airlines:");
-    for (Airline a : Database.airlines) {
-        System.out.println("ID: " + a.getAirlineID() + " | Name: " + a.getName());
-    }
+                    if (Database.airlines.isEmpty()) {
+                        System.out.println("⚠️ No airlines available. Please create an airline first.");
+                        break;
+                    }
 
-    // List airports
-    if (Database.airports.isEmpty()) {
-        System.out.println("⚠️ No airports available. Please create airports first.");
-        break;
-    }
-    System.out.println("Available Airports:");
-    for (Airport ap : Database.airports) {
-        System.out.println("ID: " + ap.getAirportID() + " | Name: " + ap.getName() + " (" + ap.getAirportCode() + ")");
-    }
+                    System.out.println("Available Airlines:");
+                    for (Airline a : Database.airlines) {
+                        System.out.println("ID: " + a.getAirlineID() + " | Name: " + a.getName());
+                    }
 
-    // Prompt for flight details
-    System.out.println("Enter airline ID (number):");
-    int airlineID = scan.nextInt();
-    scan.nextLine();
+                    if (Database.airports.isEmpty()) {
+                        System.out.println("⚠️ No airports available. Please create airports first.");
+                        break;
+                    }
 
-    System.out.println("Enter source airport ID:");
-    int sourceAirportID = scan.nextInt();
-    scan.nextLine();
+                    System.out.println("Available Airports:");
+                    for (Airport ap : Database.airports) {
+                        System.out.println("ID: " + ap.getAirportID() + " | Name: " + ap.getName() + " (" + ap.getAirportCode() + ")");
+                    }
 
-    System.out.println("Enter destination airport ID:");
-    int destAirportID = scan.nextInt();
-    scan.nextLine();
+                    int airlineID = getIntInput(scan, "Enter airline ID (number):");
+                    int sourceAirportID = getIntInput(scan, "Enter source airport ID:");
+                    int destAirportID = getIntInput(scan, "Enter destination airport ID:");
+                    String departure = getValidDate(scan, "Enter departure time (YYYY/MM/DD HH:mm):");
+                    String arrival = getValidDate(scan, "Enter arrival time (YYYY/MM/DD HH:mm):");
+                    int capacity = getIntInput(scan, "Enter capacity:");
+                    double price = getDoubleInput(scan, "Enter price:");
 
-    System.out.println("Enter departure time (YYYY/MM/DD HH:mm):");
-    String departure = scan.nextLine();
-
-    System.out.println("Enter arrival time (YYYY/MM/DD HH:mm):");
-    String arrival = scan.nextLine();
-
-    System.out.println("Enter capacity:");
-    int capacity = scan.nextInt();
-
-    System.out.println("Enter price:");
-    double price = scan.nextDouble();
-    scan.nextLine();
-
-    // Create the flight
-    flightservice.createFlight(
-        airlineID,
-        sourceAirportID,
-        destAirportID,
-        departure,
-        arrival,
-        capacity,
-        price
-    );
-    break;
-
+                    flightservice.createFlight(airlineID, sourceAirportID, destAirportID, departure, arrival, capacity, price);
+                    break;
 
                 case 3:
-                    // Booking creation logic here
-                    System.out.println("Enter Flight ID:");
-                    int flightId = scan.nextInt();
-                    System.out.println("Enter User ID:");
-                    int userId = scan.nextInt();
-                    scan.nextLine();
+                    int flightId = getIntInput(scan, "Enter Flight ID:");
+                    int userId = getIntInput(scan, "Enter User ID:");
+
+                    if (getFlightById(flightId) == null) {
+                        System.out.println("❌ Flight does not exist.");
+                        break;
+                    }
+                    if (getUserById(userId) == null) {
+                        System.out.println("❌ User does not exist.");
+                        break;
+                    }
+
                     bookingservice.createBooking(flightId, userId);
                     System.out.println("✅ Booking created.");
                     break;
-
 
                 case 4:
                     userservice.listUsers();
@@ -162,99 +138,157 @@ public class Main  {
                     bookingservice.listBookings();
                     break;
 
-              case 7:
-    System.out.println("Enter User ID to modify:");
-    int userIDToModify = scan.nextInt();
-    scan.nextLine();
+                case 7:
+                    int userIDToModify = getIntInput(scan, "Enter User ID to modify:");
+                    User userToModify = getUserById(userIDToModify);
 
-    User userToModify = null;
-    for (User user : Database.users) {
-        if (user.getId() == userIDToModify) {
-            userToModify = user;
-            break;
-        }
-    }
+                    if (userToModify == null) {
+                        System.out.println("❌ User not found.");
+                        break;
+                    }
 
-    if (userToModify == null) {
-        System.out.println("❌ User not found.");
-        break;
-    }
+                    System.out.println("User found: " + userToModify);
+                    System.out.println("Which field do you want to modify? (name, email, phone, password)");
+                    String field = scan.nextLine().toLowerCase();
 
-    System.out.println("User found: " + userToModify);
-    System.out.println("Which field do you want to modify? (name, email, phone, password)");
-    String field = scan.nextLine().toLowerCase();
+                    switch (field) {
+                        case "name":
+                            System.out.println("Enter new name:");
+                            userToModify.setName(scan.nextLine());
+                            break;
+                        case "email":
+                            System.out.println("Enter new email:");
+                            userToModify.setEmail(scan.nextLine());
+                            break;
+                        case "phone":
+                            System.out.println("Enter new phone number:");
+                            userToModify.setPhone(scan.nextLine());
+                            break;
+                        case "password":
+                            System.out.println("Enter new password:");
+                            userToModify.setPassword(scan.nextLine());
+                            break;
+                        default:
+                            System.out.println("Invalid field.");
+                            break;
+                    }
 
-    switch (field) {
-        case "name":
-            System.out.println("Enter new name:");
-            String newName = scan.nextLine();
-            userToModify.setName(newName);
-            break;
-        case "email":
-            System.out.println("Enter new email:");
-            String newEmail = scan.nextLine();
-            userToModify.setEmail(newEmail);
-            break;
-        case "phone":
-            System.out.println("Enter new phone number:");
-            String newPhone = scan.nextLine();
-            userToModify.setPhone(newPhone);
-            break;
-        case "password":
-            System.out.println("Enter new password:");
-            String newPassword = scan.nextLine();
-            userToModify.setPassword(newPassword);
-            break;
-        default:
-            System.out.println("Invalid field.");
-            break;
-    }
-
-    System.out.println("✅ User updated: " + userToModify);
-    break;
-
+                    System.out.println("✅ User updated: " + userToModify);
+                    break;
 
                 case 8:
-                    // Modify flight logic
-                   System.out.println("Enter Flight ID to modify:");
-                    int modFlightID = scan.nextInt();
-                    scan.nextLine();
-                    System.out.println("Enter new departure time (YYYY/MM/DD HH:mm):");
-                    String newDeparture = scan.nextLine();
-                    System.out.println("Enter new arrival time (YYYY/MM/DD HH:mm):");
-                    String newArrival = scan.nextLine();
+                    int modFlightID = getIntInput(scan, "Enter Flight ID to modify:");
+                    Flight flight = getFlightById(modFlightID);
+                    if (flight == null) {
+                        System.out.println("❌ Flight not found.");
+                        break;
+                    }
+                    String newDeparture = getValidDate(scan, "Enter new departure time (YYYY/MM/DD HH:mm):");
+                    String newArrival = getValidDate(scan, "Enter new arrival time (YYYY/MM/DD HH:mm):");
                     flightservice.modifyFlight(modFlightID, newDeparture, newArrival);
                     break;
 
-
                 case 9:
-                    // Modify booking logic
-                   System.out.println("Enter Booking ID to modify:");
-                    int bookingId = scan.nextInt();
-                    System.out.println("Enter new Flight ID:");
-                    int newFlightID = scan.nextInt();
-                    System.out.println("Enter new User ID:");
-                    int newUserID = scan.nextInt();
-                    scan.nextLine();
+                    int bookingId = getIntInput(scan, "Enter Booking ID to modify:");
+                    Booking booking = getBookingById(bookingId);
+                    if (booking == null) {
+                        System.out.println("❌ Booking not found.");
+                        break;
+                    }
+
+                    int newFlightID = getIntInput(scan, "Enter new Flight ID:");
+                    int newUserID = getIntInput(scan, "Enter new User ID:");
+                    if (getFlightById(newFlightID) == null || getUserById(newUserID) == null) {
+                        System.out.println("❌ Invalid flight or user ID.");
+                        break;
+                    }
                     bookingservice.modifyBooking(bookingId, newFlightID, newUserID);
                     break;
 
                 case 0:
-                    System.out.println("Enter Booking ID to cancel:");
-                    int bookingID = scan.nextInt();
-                    scan.nextLine();
+                    int bookingID = getIntInput(scan, "Enter Booking ID to cancel:");
+                    if (getBookingById(bookingID) == null) {
+                        System.out.println("❌ Booking not found.");
+                        break;
+                    }
                     bookingservice.cancelBooking(bookingID);
                     break;
 
                 case 10:
                     System.out.println("Goodbye!");
                     scan.close();
-                    return;  // Exit main method
+                    return;
 
                 default:
                     System.out.println("Invalid Input");
                     break;
             }
         }
+    }
+
+    // --------- Helper Methods ---------
+
+    public static int getIntInput(Scanner scan, String prompt) {
+        while (true) {
+            System.out.println(prompt);
+            if (scan.hasNextInt()) {
+                int input = scan.nextInt();
+                scan.nextLine(); // consume newline
+                return input;
+            } else {
+                System.out.println("❌ Invalid number. Please enter a valid integer.");
+                scan.nextLine(); // consume invalid input
+            }
+        }
+    }
+
+    public static double getDoubleInput(Scanner scan, String prompt) {
+        while (true) {
+            System.out.println(prompt);
+            if (scan.hasNextDouble()) {
+                double input = scan.nextDouble();
+                scan.nextLine(); // consume newline
+                return input;
+            } else {
+                System.out.println("❌ Invalid number. Please enter a valid decimal number.");
+                scan.nextLine(); // consume invalid input
+            }
+        }
+    }
+
+    public static String getValidDate(Scanner scan, String prompt) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+        format.setLenient(false);
+        while (true) {
+            System.out.println(prompt);
+            String input = scan.nextLine();
+            try {
+                format.parse(input);
+                return input;
+            } catch (ParseException e) {
+                System.out.println("❌ Invalid date format. Please use YYYY/MM/DD HH:mm");
+            }
+        }
+    }
+
+    public static User getUserById(int id) {
+        for (User user : Database.users) {
+            if (user.getId() == id) return user;
+        }
+        return null;
+    }
+
+    public static Flight getFlightById(int id) {
+        for (Flight flight : Database.flights) {
+            if (flight.getId() == id) return flight;
+        }
+        return null;
+    }
+
+    public static Booking getBookingById(int id) {
+        for (Booking booking : Database.bookings) {
+            if (booking.getBookingID() == id) return booking;
+        }
+        return null;
     }
 }
