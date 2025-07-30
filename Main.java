@@ -5,12 +5,18 @@ import models.Airline;
 import models.Airport;
 import models.Booking;
 import models.Flight;
-import models.User;
+import models.*;
 import services.*;
 import utils.Database;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
+
+
 
 public class Main {
     public static void main(String[] args) {
+        Database.loadUsersFromFile();
         Scanner scan = new Scanner(System.in);
         Userservice userservice = new Userservice();
         Flightservice flightservice = new Flightservice();
@@ -34,41 +40,37 @@ public class Main {
 
             switch (choice) {
                 case 1:
-                    System.out.println("Enter Full Name: ");
-                    String name = scan.nextLine();
-                    System.out.println("Enter email address");
-                    String email = scan.nextLine();
-                    System.out.println("Enter phone number");
-                    String phoneNumber = scan.nextLine();
-                    System.out.println("Enter username");
-                    String username = scan.nextLine();
-                    System.out.println("Enter password");
-                    String password = scan.nextLine();
-                    System.out.println("Enter user role: customer / staff / admin");
-                    String role = scan.nextLine().toLowerCase();
+
+                    String name = getValidFullName(scan, "Enter Full Name:");
+                    String email = getValidEmail(scan, "Enter email address:");
+                    String phoneNumber = getValidCanadianPhoneNumber(scan);
+                    String username = getValidUsername(scan, "Enter username (exactly 8 characters, letters and digits only):");
+                    String password = getValidPassword(scan, "Enter password (exactly 8 characters, with at least 1 uppercase letter and 1 symbol):");
+                    String role = getValidRole(scan, "Enter user role: customer / staff / admin");
 
                     switch (role) {
                         case "customer":
-                            System.out.println("Student? Yes/No");
-                            String student = scan.nextLine();
-                            String dateOfBirth = getValidDate(scan, "Enter date of birth (YYYY/MM/DD):");
-                            System.out.println("Enter nationality");
-                            String nationality = scan.nextLine();
-                            System.out.println("Enter passport number");
-                            String passportNumber = scan.nextLine();
+
+                            String student = validateStudent(scan, "Student? Yes/No");
+                            String dateOfBirth = getValidBirthdayDateOnly(scan, "Enter date of birth (YYYY/MM/DD):");
+                            String nationality = getValidNationality(scan, "Enter nationality:");
+                            String passportNumber = getValidPassportNumber(scan, nationality);
                             userservice.createCustomer(name, email, phoneNumber, username, password, student, dateOfBirth, nationality, passportNumber);
+                            Database.saveUsersToFile();
                             break;
 
                         case "admin":
-                            System.out.println("Enter badge number");
-                            String adminBadge = scan.nextLine();
+//                            System.out.println("Enter badge number");
+                            String adminBadge = getValidBadgeNumber(scan, "admin");
                             userservice.createAdmin(name, email, phoneNumber, username, password, adminBadge);
+                            Database.saveUsersToFile();
                             break;
 
                         case "staff":
-                            System.out.println("Enter badge number");
-                            String staffBadge = scan.nextLine();
+//                            System.out.println("Enter badge number");
+                            String staffBadge = getValidBadgeNumber(scan, "staff");
                             userservice.createStaff(name, email, phoneNumber, username, password, staffBadge);
+                            Database.saveUsersToFile();
                             break;
 
                         default:
@@ -107,6 +109,7 @@ public class Main {
                     double price = getDoubleInput(scan, "Enter price:");
 
                     flightservice.createFlight(airlineID, sourceAirportID, destAirportID, departure, arrival, capacity, price);
+
                     break;
 
                 case 3:
@@ -155,18 +158,22 @@ public class Main {
                         case "name":
                             System.out.println("Enter new name:");
                             userToModify.setName(scan.nextLine());
+                            Database.saveUsersToFile();
                             break;
                         case "email":
                             System.out.println("Enter new email:");
                             userToModify.setEmail(scan.nextLine());
+                            Database.saveUsersToFile();
                             break;
                         case "phone":
                             System.out.println("Enter new phone number:");
                             userToModify.setPhone(scan.nextLine());
+                            Database.saveUsersToFile();
                             break;
                         case "password":
                             System.out.println("Enter new password:");
                             userToModify.setPassword(scan.nextLine());
+                            Database.saveUsersToFile();
                             break;
                         default:
                             System.out.println("Invalid field.");
@@ -216,6 +223,7 @@ public class Main {
 
                 case 10:
                     System.out.println("Goodbye!");
+                    Database.saveUsersToFile();
                     scan.close();
                     return;
 
@@ -270,6 +278,162 @@ public class Main {
             }
         }
     }
+    public static String getValidBirthdayDateOnly(Scanner scan, String prompt) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd");
+        format.setLenient(false);
+        while (true) {
+            System.out.println(prompt);
+            String input = scan.nextLine();
+            try {
+                format.parse(input);
+                return input;
+            } catch (ParseException e) {
+                System.out.println("❌ Invalid date format. Please use YYYY/MM/DD");
+            }
+        }
+    }
+    public static String getValidRole(Scanner scan, String prompt) {
+        while (true) {
+            System.out.println(prompt);
+            String role = scan.nextLine().trim().toLowerCase();
+            if (role.equals("customer") || role.equals("staff") || role.equals("admin")) {
+                return role;
+            } else {
+                System.out.println("❌ Invalid role. Please enter one of: customer / staff / admin");
+            }
+        }
+    }
+    public static String getValidFullName(Scanner scan, String prompt) {
+        while (true) {
+            System.out.println(prompt);
+            String input = scan.nextLine();
+            if (input.matches("^[A-Za-z ]+$")) {
+                return input;
+            } else {
+                System.out.println("❌ Invalid name. Only letters and spaces are allowed.");
+            }
+        }
+    }
+    public static String getValidNationality(Scanner scan, String prompt) {
+        while (true) {
+            System.out.println(prompt);
+            String input = scan.nextLine();
+            if (input.matches("^[A-Za-z]+$")) {
+                return input;
+            } else {
+                System.out.println("❌ Invalid nationality. Only letters are allowed.");
+            }
+        }
+    }
+    public static String getValidCanadianPhoneNumber(Scanner scan) {
+        // Pattern: optional "+1", then exactly 10 digits
+        String pattern = "^(\\+1)?\\d{10}$";
+        Pattern regex = Pattern.compile(pattern);
+
+        while (true) {
+            System.out.println("Enter Canadian phone number; exactly 10 digits:");
+            String input = scan.nextLine().trim();
+            Matcher matcher = regex.matcher(input);
+            if (matcher.matches()) {
+                return input;
+            } else {
+                System.out.println("❌ Invalid Canadian phone number format. Please enter exactly 10 digits, optionally preceded by +1.");
+            }
+        }
+    }
+
+
+
+
+    public static String getValidEmail(Scanner scan, String prompt) {
+        while (true) {
+            System.out.println(prompt);
+            String input = scan.nextLine().toLowerCase();
+            if (input.matches("^[A-Za-z0-9._%+-]+@(gmail|hotmail|yahoo|icloud|outlook)\\.com$")) {
+                return input;
+            } else {
+                System.out.println("❌ Invalid email. Allowed domains: gmail.com, hotmail.com, yahoo.com, icloud.com");
+            }
+        }
+    }
+    public static String getValidUsername(Scanner scan, String prompt) {
+        while (true) {
+            System.out.println(prompt);
+            String input = scan.nextLine();
+            if (input.matches("^[A-Za-z0-9]{8}$")) {
+                return input;
+            } else {
+                System.out.println("❌ Invalid username. It must be exactly 8 characters long and contain only letters and digits.");
+            }
+        }
+    }
+    public static String getValidPassword(Scanner scan, String prompt) {
+        while (true) {
+            System.out.println(prompt);
+            String input = scan.nextLine();
+            if (input.length() == 8 &&
+                    input.matches(".*[A-Z].*") &&      // At least one uppercase
+                    input.matches(".*[^A-Za-z0-9].*")) // At least one symbol
+            {
+                return input;
+            } else {
+                System.out.println("❌ Invalid password. It must be exactly 8 characters and include at least 1 uppercase letter and 1 symbol.");
+            }
+        }
+    }
+
+    public static String validateStudent(Scanner scan, String prompt) {
+        while (true) {
+            System.out.println(prompt);
+            String input = scan.nextLine().trim().toLowerCase();
+            if (input.equals("yes") || input.equals("no")) {
+                return input;
+            } else {
+                System.out.println("❌ Invalid input. Please enter 'Yes' or 'No'.");
+            }
+        }
+    }
+    public static String getValidPassportNumber(Scanner scan, String nationality) {
+        String lowerNationality = nationality.toLowerCase();
+        String pattern = Database.passportPatterns.get(lowerNationality);
+
+        if (pattern == null) {
+            System.out.println("❌ No passport pattern defined for nationality: " + nationality);
+            return null;
+        }
+
+        Pattern regex = Pattern.compile(pattern);
+
+        while (true) {
+            System.out.println("Enter passport number for " + nationality + ":");
+            String input = scan.nextLine().trim().toUpperCase();  // Normalize input if needed
+            Matcher matcher = regex.matcher(input);
+            if (matcher.matches()) {
+                return input;
+            } else {
+                System.out.println("❌ Invalid passport number format for " + nationality + ".");
+            }
+        }
+    }
+    public static String getValidBadgeNumber(Scanner scan, String role) {
+        String prefix = role.equals("admin") ? "A" : "S";
+        String pattern = "^" + prefix + "\\d{9}$"; // e.g. A + 9 digits or S + 9 digits
+
+        Pattern regex = Pattern.compile(pattern);
+
+        while (true) {
+            System.out.println("Enter badge number (must start with '" + prefix + "' and be exactly 10 characters):");
+            String input = scan.nextLine().trim();
+            Matcher matcher = regex.matcher(input);
+            if (matcher.matches()) {
+                return input;
+            } else {
+                System.out.println("❌ Invalid badge number format. Please try again.");
+            }
+        }
+    }
+
+
 
     public static User getUserById(int id) {
         for (User user : Database.users) {
@@ -291,4 +455,6 @@ public class Main {
         }
         return null;
     }
+
+
 }

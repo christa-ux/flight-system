@@ -1,5 +1,7 @@
 package models;
-public class Customer extends User {
+import java.io.Serializable;
+public class Customer extends User implements Serializable {
+	private static final long serialVersionUID = 1L;
 	protected String nationality;
 	protected String dateOfBirth;
 	private String passportNumber;
@@ -11,6 +13,10 @@ public class Customer extends User {
 		this.dateOfBirth=dateOfBirth;
 		this.passportNumber=passportNumber;
 		this.student=student;
+	}
+	@Override
+	public String getType() {
+		return "customer";
 	}
 	
 	public String getNationality() {

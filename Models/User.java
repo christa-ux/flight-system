@@ -1,6 +1,8 @@
 package models;
+import java.io.Serializable;
+public abstract class User implements Serializable {
+	private static final long serialVersionUID = 1L;
 
-public abstract class User {
 	protected int id; 
 	protected String name,email,phoneNumber,username, role;
 	private String password;
@@ -68,4 +70,5 @@ public abstract class User {
 	             + " | Phone: " + phoneNumber
 	             + " | Username: " + username;
 	}
+	public abstract String getType();
 }
