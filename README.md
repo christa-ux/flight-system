@@ -49,17 +49,4 @@ A comprehensive flight booking system built with Java and Maven, utilizing Objec
 - Apache Maven 3.6 or higher
 - IDE (IntelliJ IDEA, Eclipse, or VS Code recommended)
 
-## Getting Started
 
-### Installation
-
-1. Clone the repository
-   ```
-   git clone <repository-url>
-   cd flight-system
-2. Build the project
-     ```
-     mvn clean compile
-3. Run the application 
-   ```
-   mvn exec:java -Dexec.mainClass="Main"
