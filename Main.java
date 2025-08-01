@@ -17,6 +17,10 @@ import java.util.regex.Matcher;
 public class Main {
     public static void main(String[] args) {
         Database.loadUsersFromFile();
+        Database.loadFlightsFromFile();
+        Database.loadBookingsFromFile();
+
+
         Scanner scan = new Scanner(System.in);
         Userservice userservice = new Userservice();
         Flightservice flightservice = new Flightservice();
@@ -55,20 +59,32 @@ public class Main {
                             String dateOfBirth = getValidBirthdayDateOnly(scan, "Enter date of birth (YYYY/MM/DD):");
                             String nationality = getValidNationality(scan, "Enter nationality:");
                             String passportNumber = getValidPassportNumber(scan, nationality);
+                            if (isDuplicateUser(username, email, phoneNumber, passportNumber, null)) {
+                                System.out.println("❌ User creation aborted due to duplicate information.");
+                                break;
+                            }
                             userservice.createCustomer(name, email, phoneNumber, username, password, student, dateOfBirth, nationality, passportNumber);
                             Database.saveUsersToFile();
                             break;
 
                         case "admin":
 //                            System.out.println("Enter badge number");
-                            String adminBadge = getValidBadgeNumber(scan, "admin");
+                            String adminBadge = getValidBadgeNumber(scan, "admin",false);
+                            if (isDuplicateUser(username, email, phoneNumber, null, adminBadge)) {
+                                System.out.println("❌ Admin creation aborted due to duplicate information.");
+                                break;
+                            }
                             userservice.createAdmin(name, email, phoneNumber, username, password, adminBadge);
                             Database.saveUsersToFile();
                             break;
 
                         case "staff":
 //                            System.out.println("Enter badge number");
-                            String staffBadge = getValidBadgeNumber(scan, "staff");
+                            String staffBadge = getValidBadgeNumber(scan, "staff",false);
+                            if (isDuplicateUser(username, email, phoneNumber, null, staffBadge)) {
+                                System.out.println("❌ Staff creation aborted due to duplicate information.");
+                                break;
+                            }
                             userservice.createStaff(name, email, phoneNumber, username, password, staffBadge);
                             Database.saveUsersToFile();
                             break;
@@ -80,6 +96,25 @@ public class Main {
                     break;
 
                 case 2:
+                    // 🔁 1️⃣ Admin Badge Verification with loop
+                    boolean isAdminValid = false;
+                    String enteredAdminBadge;
+
+                    do {
+                        enteredAdminBadge = getValidBadgeNumber(scan, "admin", true);
+                        for (User user : Database.users) {
+                            if (user instanceof Admin && ((Admin) user).getAdminBadge().equals(enteredAdminBadge)) {
+                                isAdminValid = true;
+                                break;
+                            }
+                        }
+
+                        if (!isAdminValid) {
+                            System.out.println("❌ Invalid or unauthorized admin badge number. Please try again.");
+                        }
+                    } while (!isAdminValid);
+
+                    // 2️⃣ Airline & Airport Availability Check
                     if (Database.airlines.isEmpty()) {
                         System.out.println("⚠️ No airlines available. Please create an airline first.");
                         break;
@@ -100,34 +135,85 @@ public class Main {
                         System.out.println("ID: " + ap.getAirportID() + " | Name: " + ap.getName() + " (" + ap.getAirportCode() + ")");
                     }
 
+                    // 3️⃣ Flight Info Input
                     int airlineID = getIntInput(scan, "Enter airline ID (number):");
-                    int sourceAirportID = getIntInput(scan, "Enter source airport ID:");
-                    int destAirportID = getIntInput(scan, "Enter destination airport ID:");
+
+                    int sourceAirportID;
+                    int destAirportID;
+
+                    // 🔁 Keep asking until source ≠ destination
+                    do {
+                        sourceAirportID = getIntInput(scan, "Enter source airport ID:");
+                        destAirportID = getIntInput(scan, "Enter destination airport ID:");
+
+                        if (sourceAirportID == destAirportID) {
+                            System.out.println("❌ Source and destination airports cannot be the same. Please enter different IDs.");
+                        }
+                    } while (sourceAirportID == destAirportID);
+
                     String departure = getValidDate(scan, "Enter departure time (YYYY/MM/DD HH:mm):");
                     String arrival = getValidDate(scan, "Enter arrival time (YYYY/MM/DD HH:mm):");
                     int capacity = getIntInput(scan, "Enter capacity:");
                     double price = getDoubleInput(scan, "Enter price:");
 
+                    // 4️⃣ Create Flight
                     flightservice.createFlight(airlineID, sourceAirportID, destAirportID, departure, arrival, capacity, price);
+                    Database.saveFlightsToFile(); // <-- Save flights to file
+                    System.out.println("✅ Flight successfully created.");
 
                     break;
+
+
 
                 case 3:
-                    int flightId = getIntInput(scan, "Enter Flight ID:");
-                    int userId = getIntInput(scan, "Enter User ID:");
+                    // 🔐 Verify role is STAFF or ADMIN via badge
+                    String badge = getValidBadgeNumber(scan, "staff or admin", true);
+                    boolean isAuthorized = false;
 
-                    if (getFlightById(flightId) == null) {
-                        System.out.println("❌ Flight does not exist.");
+                    for (User user : Database.users) {
+                        if (user instanceof Staff && ((Staff) user).getStaffBadge().equals(badge)) {
+                            isAuthorized = true;
+                            break;
+                        }
+                        if (user instanceof Admin && ((Admin) user).getAdminBadge().equals(badge)) {
+                            isAuthorized = true;
+                            break;
+                        }
+                    }
+
+                    if (!isAuthorized) {
+                        System.out.println("❌ Unauthorized. Only staff or admin can create bookings.");
                         break;
                     }
-                    if (getUserById(userId) == null) {
-                        System.out.println("❌ User does not exist.");
-                        break;
-                    }
 
+                    // ✈️ Prompt for valid Flight ID
+                    int flightId;
+                    Flight selectedFlight;
+                    do {
+                        flightId = getIntInput(scan, "Enter Flight ID:");
+                        selectedFlight = getFlightById(flightId);
+                        if (selectedFlight == null) {
+                            System.out.println("❌ Flight does not exist. Try again.");
+                        }
+                    } while (selectedFlight == null);
+
+                    // 👤 Prompt for valid User ID
+                    int userId;
+                    User selectedUser;
+                    do {
+                        userId = getIntInput(scan, "Enter User ID:");
+                        selectedUser = getUserById(userId);
+                        if (selectedUser == null) {
+                            System.out.println("❌ User does not exist. Try again.");
+                        }
+                    } while (selectedUser == null);
+
+                    // ✅ Create booking with validations
                     bookingservice.createBooking(flightId, userId);
-                    System.out.println("✅ Booking created.");
+                    Database.saveBookingsToFile();
                     break;
+
+
 
                 case 4:
                     userservice.listUsers();
@@ -151,7 +237,7 @@ public class Main {
                     }
 
                     System.out.println("User found: " + userToModify);
-                    System.out.println("Which field do you want to modify? (name, email, phone, password)");
+                    System.out.println("Which field do you want to modify? (name, email, phone, username, password)");
                     String field = scan.nextLine().toLowerCase();
 
                     switch (field) {
@@ -170,6 +256,11 @@ public class Main {
                             userToModify.setPhone(scan.nextLine());
                             Database.saveUsersToFile();
                             break;
+                        case "username":
+                            String newUsername = getValidUsername(scan, "Enter new username (exactly 8 characters, letters and digits only):");
+                            userToModify.setUsername(newUsername);
+                            Database.saveUsersToFile();
+                            break;
                         case "password":
                             System.out.println("Enter new password:");
                             userToModify.setPassword(scan.nextLine());
@@ -180,19 +271,50 @@ public class Main {
                             break;
                     }
 
+
                     System.out.println("✅ User updated: " + userToModify);
                     break;
 
                 case 8:
+                    // Verify admin credentials first
+                    String adminBadge = getValidBadgeNumber(scan, "admin", true);
+                    boolean adminValid = false;
+                    Admin adminUser = null;
+
+                    // Check if the badge exists and belongs to an admin
+                    for (User user : Database.users) {
+                        if (user instanceof Admin && ((Admin) user).getAdminBadge().equals(adminBadge)) {
+                            adminValid = true;
+                            adminUser = (Admin) user;
+                            break;
+                        }
+                    }
+
+                    if (!adminValid) {
+                        System.out.println("❌ Invalid admin credentials. Only authorized admins can modify flights.");
+                        break;
+                    }
+
+                    // Proceed with flight modification if admin is verified
                     int modFlightID = getIntInput(scan, "Enter Flight ID to modify:");
                     Flight flight = getFlightById(modFlightID);
                     if (flight == null) {
                         System.out.println("❌ Flight not found.");
                         break;
                     }
+
+                    System.out.println("Flight found. Current details:");
+                    System.out.println("Departure: " + flight.getDepartureTime());
+                    System.out.println("Arrival: " + flight.getArrivalTime());
+
                     String newDeparture = getValidDate(scan, "Enter new departure time (YYYY/MM/DD HH:mm):");
                     String newArrival = getValidDate(scan, "Enter new arrival time (YYYY/MM/DD HH:mm):");
+
                     flightservice.modifyFlight(modFlightID, newDeparture, newArrival);
+                    Database.saveFlightsToFile();
+
+                    // Log which admin made the change
+                    System.out.println("✅ Flight successfully modified by admin: " + adminUser.getName() + " (" + adminBadge + ")");
                     break;
 
                 case 9:
@@ -210,6 +332,7 @@ public class Main {
                         break;
                     }
                     bookingservice.modifyBooking(bookingId, newFlightID, newUserID);
+                    Database.saveBookingsToFile();
                     break;
 
                 case 0:
@@ -219,6 +342,7 @@ public class Main {
                         break;
                     }
                     bookingservice.cancelBooking(bookingID);
+                    Database.saveBookingsToFile();
                     break;
 
                 case 10:
@@ -326,7 +450,6 @@ public class Main {
         }
     }
     public static String getValidCanadianPhoneNumber(Scanner scan) {
-        // Pattern: optional "+1", then exactly 10 digits
         String pattern = "^(\\+1)?\\d{10}$";
         Pattern regex = Pattern.compile(pattern);
 
@@ -334,13 +457,21 @@ public class Main {
             System.out.println("Enter Canadian phone number; exactly 10 digits:");
             String input = scan.nextLine().trim();
             Matcher matcher = regex.matcher(input);
-            if (matcher.matches()) {
-                return input;
+            if (!matcher.matches()) {
+                System.out.println("❌ Invalid Canadian phone number format.");
+                continue;
+            }
+
+            boolean exists = Database.users.stream()
+                    .anyMatch(u -> u.getPhone().equals(input));
+            if (exists) {
+                System.out.println("❌ Phone number already exists.");
             } else {
-                System.out.println("❌ Invalid Canadian phone number format. Please enter exactly 10 digits, optionally preceded by +1.");
+                return input;
             }
         }
     }
+
 
 
 
@@ -349,24 +480,40 @@ public class Main {
         while (true) {
             System.out.println(prompt);
             String input = scan.nextLine().toLowerCase();
-            if (input.matches("^[A-Za-z0-9._%+-]+@(gmail|hotmail|yahoo|icloud|outlook)\\.com$")) {
-                return input;
-            } else {
+            if (!input.matches("^[A-Za-z0-9._%+-]+@(gmail|hotmail|yahoo|icloud|outlook)\\.com$")) {
                 System.out.println("❌ Invalid email. Allowed domains: gmail.com, hotmail.com, yahoo.com, icloud.com");
+                continue;
+            }
+
+            boolean exists = Database.users.stream()
+                    .anyMatch(u -> u.getEmail().equalsIgnoreCase(input));
+            if (exists) {
+                System.out.println("❌ Email already exists.");
+            } else {
+                return input;
             }
         }
     }
+
     public static String getValidUsername(Scanner scan, String prompt) {
         while (true) {
             System.out.println(prompt);
             String input = scan.nextLine();
-            if (input.matches("^[A-Za-z0-9]{8}$")) {
-                return input;
-            } else {
+            if (!input.matches("^[A-Za-z0-9]{8}$")) {
                 System.out.println("❌ Invalid username. It must be exactly 8 characters long and contain only letters and digits.");
+                continue;
+            }
+            // Check for duplicates
+            boolean exists = Database.users.stream()
+                    .anyMatch(u -> u.getUsername().equalsIgnoreCase(input));
+            if (exists) {
+                System.out.println("❌ Username already exists.");
+            } else {
+                return input;
             }
         }
     }
+
     public static String getValidPassword(Scanner scan, String prompt) {
         while (true) {
             System.out.println(prompt);
@@ -402,36 +549,189 @@ public class Main {
             return null;
         }
 
+        // Print the expected format based on nationality
+        String formatMessage = "Expected passport format for " + nationality + ": ";
+        switch (lowerNationality) {
+            case "usa":
+                formatMessage += "9 digits (e.g., 123456789)";
+                break;
+            case "uk":
+                formatMessage += "9 alphanumeric characters (e.g., AB123CD45)";
+                break;
+            case "india":
+                formatMessage += "1 letter followed by 7 digits (e.g., A1234567)";
+                break;
+            case "canada":
+                formatMessage += "2 letters followed by 6 digits (e.g., AB123456)";
+                break;
+            case "germany":
+                formatMessage += "9 characters from CFGHJKLMNPRTVWXYZ or digits (e.g., C12D34F56)";
+                break;
+            case "france":
+                formatMessage += "2 digits, 2 letters, 5 digits (e.g., 12AB34567)";
+                break;
+            case "australia":
+                formatMessage += "N followed by 7 digits (e.g., N1234567)";
+                break;
+            case "japan":
+                formatMessage += "2 letters followed by 7 digits (e.g., AB1234567)";
+                break;
+            case "china":
+                formatMessage += "E or G followed by 8 digits (e.g., E12345678)";
+                break;
+            case "brazil":
+                formatMessage += "2 letters followed by 6 digits (e.g., AB123456)";
+                break;
+            case "southafrica":
+                formatMessage += "13 digits (e.g., 1234567890123)";
+                break;
+            case "nigeria":
+                formatMessage += "1 letter followed by 8 digits (e.g., A12345678)";
+                break;
+            case "russia":
+                formatMessage += "2 digits, space, 6 digits (e.g., 12 345678)";
+                break;
+            case "italy":
+                formatMessage += "2 letters followed by 7 digits (e.g., AB1234567)";
+                break;
+            case "mexico":
+                formatMessage += "1 letter followed by 8 digits (e.g., A12345678)";
+                break;
+            default:
+                formatMessage += "Please check your country's passport format";
+        }
+
+        System.out.println(formatMessage);
+
         Pattern regex = Pattern.compile(pattern);
 
         while (true) {
             System.out.println("Enter passport number for " + nationality + ":");
-            String input = scan.nextLine().trim().toUpperCase();  // Normalize input if needed
+            String input = scan.nextLine().trim().toUpperCase();
             Matcher matcher = regex.matcher(input);
-            if (matcher.matches()) {
-                return input;
+            if (!matcher.matches()) {
+                System.out.println("❌ Invalid passport number format.");
+                continue;
+            }
+
+            boolean exists = Database.users.stream()
+                    .filter(u -> u instanceof Customer)
+                    .map(u -> (Customer) u)
+                    .anyMatch(c -> c.getPassportNumber().equalsIgnoreCase(input));
+
+            if (exists) {
+                System.out.println("❌ Passport number already exists.");
             } else {
-                System.out.println("❌ Invalid passport number format for " + nationality + ".");
+                return input;
             }
         }
     }
-    public static String getValidBadgeNumber(Scanner scan, String role) {
-        String prefix = role.equals("admin") ? "A" : "S";
-        String pattern = "^" + prefix + "\\d{9}$"; // e.g. A + 9 digits or S + 9 digits
 
-        Pattern regex = Pattern.compile(pattern);
+//    public static String getValidBadgeNumber(Scanner scan, String role) {
+//        String prefix = role.equals("admin") ? "A" : "S";
+//        String pattern = "^" + prefix + "\\d{9}$"; // A + 9 digits or S + 9 digits
+//
+//        Pattern regex = Pattern.compile(pattern);
+//
+//        while (true) {
+//            System.out.println("Enter badge number (must start with '" + prefix + "' and be exactly 10 characters):");
+//            String input = scan.nextLine().trim();
+//            Matcher matcher = regex.matcher(input);
+//
+//            if (!matcher.matches()) {
+//                System.out.println("❌ Invalid badge number format.");
+//                continue;
+//            }
+//
+//            boolean exists = Database.users.stream()
+//                    .anyMatch(u -> (role.equals("admin") && u instanceof Admin && ((Admin) u).getAdminBadge().equalsIgnoreCase(input)) ||
+//                            (role.equals("staff") && u instanceof Staff && ((Staff) u).getStaffBadge().equalsIgnoreCase(input)));
+//
+//            if (exists) {
+//                System.out.println("❌ Badge number already exists.");
+//            } else {
+//                return input;
+//            }
+//        }
+//    }
+
+
+    public static String getValidBadgeNumber(Scanner scan, String role, boolean mustExist) {
+        String prefixPattern;
+        if (role.equals("staff or admin")) {
+            prefixPattern = "^[AS]\\d{9}$"; // A or S + 9 digits
+        } else {
+            String prefix = role.equals("admin") ? "A" : "S";
+            prefixPattern = "^" + prefix + "\\d{9}$";
+        }
+
+        Pattern regex = Pattern.compile(prefixPattern);
 
         while (true) {
-            System.out.println("Enter badge number (must start with '" + prefix + "' and be exactly 10 characters):");
+            System.out.println("Enter " + role + " badge (A or S + 9 digits):");
             String input = scan.nextLine().trim();
             Matcher matcher = regex.matcher(input);
-            if (matcher.matches()) {
-                return input;
+
+            if (!matcher.matches()) {
+                System.out.println("❌ Invalid badge number format.");
+                continue;
+            }
+
+            boolean exists = Database.users.stream().anyMatch(u ->
+                    (input.startsWith("A") && u instanceof Admin && ((Admin) u).getAdminBadge().equalsIgnoreCase(input)) ||
+                            (input.startsWith("S") && u instanceof Staff && ((Staff) u).getStaffBadge().equalsIgnoreCase(input))
+            );
+
+            if (mustExist && !exists) {
+                System.out.println("❌ Badge number does not exist.");
+            } else if (!mustExist && exists) {
+                System.out.println("❌ Badge number already exists.");
             } else {
-                System.out.println("❌ Invalid badge number format. Please try again.");
+                return input;
             }
         }
     }
+
+    public static boolean isDuplicateUser(String username, String email, String phone, String passportNumber, String badgeNumber) {
+        for (User user : Database.users) {
+            if (user.getUsername().equalsIgnoreCase(username)) {
+                System.out.println("❌ Username already exists.");
+                return true;
+            }
+            if (user.getEmail().equalsIgnoreCase(email)) {
+                System.out.println("❌ Email already exists.");
+                return true;
+            }
+            if (user.getPhone().equals(phone)) {
+                System.out.println("❌ Phone number already exists.");
+                return true;
+            }
+
+            if (user instanceof Customer) {
+                Customer cust = (Customer) user;
+                if (cust.getPassportNumber().equalsIgnoreCase(passportNumber)) {
+                    System.out.println("❌ Passport number already exists.");
+                    return true;
+                }
+            }
+
+            if (user instanceof Admin && badgeNumber != null) {
+                if (((Admin) user).getAdminBadge().equalsIgnoreCase(badgeNumber)) {
+                    System.out.println("❌ Admin badge number already exists.");
+                    return true;
+                }
+            }
+
+            if (user instanceof Staff && badgeNumber != null) {
+                if (((Staff) user).getStaffBadge().equalsIgnoreCase(badgeNumber)) {
+                    System.out.println("❌ Staff badge number already exists.");
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 
 
 
@@ -455,6 +755,9 @@ public class Main {
         }
         return null;
     }
-
-
+    public static long getBookingCountForFlight(int flightId) {
+        return Database.bookings.stream()
+                .filter(b -> b.getFlightID() == flightId)
+                .count();
+    }
 }
