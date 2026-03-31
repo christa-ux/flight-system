@@ -1,0 +1,101 @@
+[
+  {
+    "nationality": "canada",
+    "dateOfBirth": "2002/07/10",
+    "passportNumber": "AS121212",
+    "student": "yes",
+    "id": 0,
+    "name": "christa",
+    "email": "christa.arraj@gmail.com",
+    "phoneNumber": "1231231231",
+    "username": "KRISTA11",
+    "role": "customer",
+    "password": "CHRIST@1"
+  },
+  {
+    "adminBadge": "A123123123",
+    "id": 1,
+    "name": "Christa ",
+    "email": "christa.arraj@icloud.com",
+    "phoneNumber": "1234567890",
+    "username": "Christa2",
+    "role": "admin",
+    "password": "Christ@2"
+  },
+  {
+    "nationality": "Canada",
+    "dateOfBirth": "2002/07/10",
+    "passportNumber": "AS123123",
+    "student": "yes",
+    "id": 2,
+    "name": "Christa ",
+    "email": "christa.arraje@outlook.com",
+    "phoneNumber": "1234123412",
+    "username": "Christa3",
+    "role": "customer",
+    "password": "Christ@1"
+  },
+  {
+    "staffBadge": "S123451234",
+    "id": 3,
+    "name": "christa",
+    "email": "christa.arraj@yahoo.com",
+    "phoneNumber": "1234512345",
+    "username": "koukou12",
+    "role": "staff",
+    "password": "KouKou@2"
+  },
+  {
+    "nationality": "canada",
+    "dateOfBirth": "2002/07/10",
+    "passportNumber": "AB565656",
+    "student": "no",
+    "id": 4,
+    "name": "KARROUSS",
+    "email": "hshshs@gmail.com",
+    "phoneNumber": "3434345656",
+    "username": "jeurosg1",
+    "role": "customer",
+    "password": "keoritG@"
+  },
+  {
+    "staffBadge": "S111111111",
+    "id": 5,
+    "name": "hehe",
+    "email": "rurururu@gmail.com",
+    "phoneNumber": "5746373829",
+    "username": "Hersiak2",
+    "role": "staff",
+    "password": "Kersiht@"
+  },
+  {
+    "adminBadge": "A123432112",
+    "id": 6,
+    "name": "Christa ",
+    "email": "coiqhbjecroberjo@gmail.com",
+    "phoneNumber": "4839222222",
+    "username": "Heeeeeee",
+    "role": "admin",
+    "password": "Heeeee@2"
+  },
+  {
+    "adminBadge": "A747474747",
+    "id": 7,
+    "name": "christa ",
+    "email": "ch@gmail.com",
+    "phoneNumber": "9999999999",
+    "username": "hhhhhhhh",
+    "role": "admin",
+    "password": "hhhhhH@2"
+  },
+  {
+    "staffBadge": "S432143214",
+    "id": 8,
+    "name": "christa",
+    "email": "we@gmail.com",
+    "phoneNumber": "0980980980",
+    "username": "kkkkkkkk",
+    "role": "staff",
+    "password": "kkkkkK@1"
+  }
+]

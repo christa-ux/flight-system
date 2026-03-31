@@ -1,0 +1,50 @@
+[
+  {
+    "flightID": 0,
+    "flightAirline": {
+      "name": "Delta Airlines",
+      "airlineID": "0",
+      "country": "USA"
+    },
+    "origin": {
+      "name": "Hamad International Airport",
+      "airportID": 0,
+      "airportCode": "DOH",
+      "city": "Doha"
+    },
+    "destination": {
+      "name": "John F. Kennedy International Airport",
+      "airportID": 1,
+      "airportCode": "JFK",
+      "city": "New York"
+    },
+    "departureTime": "Jul 10, 2002, 11:11:00 AM",
+    "arrivalTime": "Jul 10, 2002, 11:11:00 AM",
+    "capacity": 200,
+    "price": 2000.0
+  },
+  {
+    "flightID": 1,
+    "flightAirline": {
+      "name": "Delta Airlines",
+      "airlineID": "0",
+      "country": "USA"
+    },
+    "origin": {
+      "name": "John F. Kennedy International Airport",
+      "airportID": 1,
+      "airportCode": "JFK",
+      "city": "New York"
+    },
+    "destination": {
+      "name": "Dubai International Airport",
+      "airportID": 2,
+      "airportCode": "DXB",
+      "city": "Dubai"
+    },
+    "departureTime": "Jan 1, 2003, 10:10:00 AM",
+    "arrivalTime": "Jan 1, 2001, 1:01:00 AM",
+    "capacity": 10,
+    "price": 1234.0
+  }
+]
